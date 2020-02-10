@@ -11,7 +11,7 @@ import re
 from string import punctuation
 from collections import Counter
 
-train = pd.read_csv('raw_data.csv', dtype={'WindSpeed': 'object'}) # import dataset
+train = pd.read_csv('data/raw_data.csv', dtype={'WindSpeed': 'object'}) # import dataset
 train.head()
 
 #%%
