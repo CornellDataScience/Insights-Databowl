@@ -5,11 +5,28 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
 
-data = pd.read_csv("../data/train.csv", index_col=[0,1,2])
+data = pd.read_csv("../data/clean_data.csv", index_col=[1,2])
 data.head()
 
 #%%
 print('\n'.join(data.columns))
+
+# %% [markdown]
+# We would really like to be able to quickly isolate individual plays
+
+# %%
+game_id = 2017090700
+play_id = 20170907000118
+
+play = data.loc[(game_id,play_id),:]
+
+# %% [markdown]
+# We can also do this with a `groupby`
+
+# %%
+plays = data.groupby(by=["GameId","PlayId"]).first()
+plt.scatter(plays.Distance,plays.Yards)
+plt.show()
 
 #%%
 drop_cols = ['X','Y','S','A','JerseyNumber','DisplayName','PlayerHeight','PlayerWeight','PlayerBirthDate','Position','PlayerCollegeName','NflId']
