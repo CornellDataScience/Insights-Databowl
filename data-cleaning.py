@@ -63,7 +63,7 @@ for abb in train['PossessionTeam'].unique():
 train['PossessionTeam'] = train['PossessionTeam'].map(map_abbr)
 train['HomeTeamAbbr'] = train['HomeTeamAbbr'].map(map_abbr)
 train['VisitorTeamAbbr'] = train['VisitorTeamAbbr'].map(map_abbr)
-train['HomePossesion'] = train['PossessionTeam'] == train['HomeTeamAbbr']
+train['HomePossession'] = train['PossessionTeam'] == train['HomeTeamAbbr']
 train['Field_eq_Possession'] = train['FieldPosition'] == train['PossessionTeam']
 train['HomeField'] = train['FieldPosition'] == train['HomeTeamAbbr']
 off_form = train['OffenseFormation'].unique()
