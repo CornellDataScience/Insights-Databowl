@@ -47,7 +47,7 @@ plt.show()
 
 #%%
 def rotate_points(arr, deg):
-    theta = np.deg2rad(deg)
+    theta = np.deg2rad(-deg)
 
     R = np.array([[np.cos(theta), -np.sin(theta)],
                   [np.sin(theta),  np.cos(theta)]])
@@ -55,24 +55,34 @@ def rotate_points(arr, deg):
     return np.squeeze((R @ (arr.T)).T)
 
 cmap = {True:"red", False: "blue"}
+m = np.array([(-1,-1),(1,-1),(0,2)])
 
-play = data.loc[(2017090700,20170907000118), ["Team","X","Y","IsRusher","Orientation","YardsLeft","Distance"]]
-m = np.array([(-1,0),(1,0),(0,3)])
+def view_play(df):
+    fig, ax = plt.subplots(figsize=(20,10))
+    row = play.loc[play.IsRusher,:].iloc[0,:]
 
-plt.figure(figsize=(20,10))
-row = play.loc[play.IsRusher,:].iloc[0,:]
-plt.axvline(x=row.YardsLeft + 10, ls="--", c='k')
-plt.axvline(x=row.YardsLeft+10+row.Distance, ls="--",c='y')
+    ax.axvline(x=row.YardLine+10, ls="--", c='k')
+    ax.axvline(x=row.YardLine+10+row.Distance, ls="--",c='y')
 
-plt.ylim((0,53.333))
-plt.axes().set_aspect("equal")
+    ax.set_ylim((0,53.333))
+    ax.set_aspect("equal")
 
-for i,row in play.iterrows():
-    color = cmap[row.Team]
-    if row.IsRusher:
-        color = 'm'
-    plt.scatter(row.X, row.Y, c=color, marker=rotate_points(m,row.Orientation), s=1000)
+    for i,row in play.iterrows():
+        color = cmap[row.Team]
+        if row.IsRusher:
+            color = 'm'
+        ax.scatter(row.X, row.Y, c=color, marker=rotate_points(m,row.Orientation), s=500)
+    
+    return fig
 
-plt.show()
+play_id = np.random.choice(plays.index)
+play = data.loc[play_id, :]
+print(play_id)
+view_play(play).show()
+
+# %% [markdown]
+# Note that while YardLine, YardsLeft, and most other metrics are standardized,
+# the X and Y position data is not, so we have to figure out how to make sure
+# that the players are on the correct side of the field etc.
 
 # %%
