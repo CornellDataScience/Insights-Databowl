@@ -1,3 +1,7 @@
+# %% [markdown]
+# # Feature Engineering
+# Build some useful & predictive features and eliminate features we can't use.
+
 # %%
 import pandas as pd
 import numpy as np
@@ -73,19 +77,26 @@ drop_cols = [
     "Stadium",
     "Location",
     "StadiumType",
+    "Turf",
     "GameWeather",
 ]
 
-clean = data.drop(drop_cols, axis=1)
+na_cols = [
+    "Temperature",
+    "Humidity",
+    "WindSpeed",
+    "WindDirection"
+]
+
+
+clean = data.drop(drop_cols + na_cols, axis=1)
+clean = clean.dropna()
 plays = clean.loc[clean.IsRusher,:]
 
 clean.head()
 
 # %% [markdown]
 # We'll just dump this data to do predictions elsewhere.
-
-# %%
-#clean.to_json("../data/fe_data.json", orient="index")
 
 # %%
 clean.to_csv("../data/fe_data.csv")
