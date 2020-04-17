@@ -66,20 +66,22 @@ train_data = dataset.shuffle(len(norm_data)).batch(100)
 def compile_model():
     model = tf.keras.Sequential([
         tf.keras.layers.InputLayer(x.shape[1], name='input'),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(16, activation='relu', name='hidden'),
-        tf.keras.layers.Dense(1, name='output')
+        tf.keras.layers.Dense(10, activation='relu'),
+        tf.keras.layers.Dense(10, activation='relu'),
+        #tf.keras.layers.Dropout(0.2),
+        #tf.keras.layers.Dense(16, activation='relu', name='hidden'),
+        #tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(1, activation='linear', name='output')
     ])
 
     rms = tf.keras.optimizers.RMSprop(0.001)
     sgd = tf.keras.optimizers.SGD()
     adam = tf.keras.optimizers.Adam()
 
-    model.compile(optimizer=adam, loss='mse', metrics=['mse','mae'])
+    model.compile(optimizer=rms, loss='mse', metrics=['mse','mae'])
     return model
 
-EPOCHS = 100
+EPOCHS = 50
 model = compile_model()
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
