@@ -104,3 +104,24 @@ plt.show()
 # It's pretty clear that this model is immediately overfitting. We'll need to
 # look into ways to fundamentally improve it or to drastically improve our
 # feature engineering.
+
+# %% [markdown]
+# We can compare this to a baseline model that just predicts the mean value of
+# yards for any inputs.
+
+# %%
+mse_data = ((y-y.mean())**2).mean()
+mae_data = (np.abs(y-y.mean())).mean()
+print("MSE of Yards against their mean:", mse_data)
+print("MAE of Yards against their mean:", mae_data)
+
+# %% [markdown]
+# The MSE of this baseline model is 33.1 yds^2, about the same as our model,
+# which indicates that our model has very little predictive power.
+
+# %%
+y_pred = model.predict(x)
+plt.scatter(y, y_pred, alpha=0.05)
+plt.xlabel("Actual Yards")
+plt.ylabel("Predicted Yards")
+plt.show()
