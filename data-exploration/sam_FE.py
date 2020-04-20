@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.decomposition import PCA
 
 data = pd.read_csv("../data/clean_data.csv", index_col=[1,2])
 plays = data.loc[data.IsRusher,:]
@@ -40,9 +41,9 @@ data.loc[~data.Field_eq_Possession, 'YardLine_adj'] = updated
 # %%
 plays = data.loc[data.IsRusher,:]
 
-plt.scatter(plays.YardsLeft, plays.YardLine_adj)
+plt.scatter(plays.YardsLeft, plays.YardLine, c=plays.Field_eq_Possession)
 plt.xlabel("YardsLeft")
-plt.ylabel("YardLine_adj")
+plt.ylabel("YardLine")
 
 plt.show()
 
@@ -63,7 +64,6 @@ plt.show()
 
 # %%
 drop_cols = [
-    "X",
     "DisplayName",
     "JerseyNumber",
     "PossessionTeam",
@@ -88,15 +88,34 @@ na_cols = [
     "WindDirection"
 ]
 
-
 clean = data.drop(drop_cols + na_cols, axis=1)
 clean = clean.dropna()
-plays = clean.loc[clean.IsRusher,:]
 
 clean.head()
+
+# %% [markdown]
+# Now we can develop the detailed play data into one line per play
+
+# %%
+plays = clean.loc[clean.IsRusher,:]
+plays = plays.drop(['IsRusher', 'IsOffense'], axis=1)
+
+# %%
+play = clean.loc[(2017090700,20170907000118)]
+
+def clarity(df):
+    df = df[['IsRusher','IsOffense','X','Y','S','A','Dis','Orientation','PlayerHeight','PlayerWeight','PlayerBMI']]
+    rusher = df.loc[df['IsRusher'],:].iloc[0]
+    
+    
+
+    return rusher
+
+clarity(play)
 
 # %% [markdown]
 # We'll just dump this data to do predictions elsewhere.
 
 # %%
 clean.to_csv("../data/fe_data.csv")
+plays.to_csv("../data/fe_plays_data.csv")
