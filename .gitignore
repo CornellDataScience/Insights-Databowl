@@ -1,4 +1,4 @@
 .vscode/settings.json
 /env/
 .ipynb_checkpoints/
-data/fe_plays_data.csv
+#data/fe_plays_data.csv
