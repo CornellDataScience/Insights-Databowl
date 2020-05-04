@@ -93,12 +93,32 @@ def_m = np.array([df.values for df in def_plays])
 off_m.shape
 
 # %% [markdown]
-# Calculate the euclidean distances between all the players, using numpy matrix
-# operations to optimize performance.
+# ### Defender Velocity
+#
+# This layer consists of two features:
+# 
+# - defender $S_x$
+# - defender $S_y$
+#
+# It does not include any information about the offense
 
 # %%
 # Defender velocity feature
 def_vel = np.reshape(def_m[:,:,2:], (-1, 1, 11, 2)).repeat(11, axis=1)
+
+# %%
+# ### Offense-Defense Distances layer
+#
+# These features compare the (x,y) positions of the offensive and defensive
+# players. This builds three features:
+# 
+# - x distance
+# - y distance
+# - euclidean distance
+#
+# This way the model is trained on both the absolute euclidean distance (so it
+# doesn'have to calculate that) as well as each of its components, which
+# preserve directionality as well.
 
 # %%
 # Euclidean distance feature
@@ -113,6 +133,18 @@ dist_e = np.sqrt(np.square(dist_xy).sum(axis=3))
 
 dist = np.concatenate([dist_xy, np.expand_dims(dist_e,3)], axis=3)
 dist = dist.reshape(-1, 11, 11, 3)
+
+# %% [markdown]
+# ### Relative velocities
+#
+# These features compare the (x,y) velocity components of the offensive and
+# defensive players. This builds two features:
+# 
+# - relative x velocity
+# - relative y velocity
+#
+# The model may be able to convolute this with position to understand how
+# players are moving in relation to each other.
 
 # %%
 # Relative velocity feature
