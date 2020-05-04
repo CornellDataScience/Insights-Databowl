@@ -71,26 +71,54 @@ plt.show()
 
 # %% [markdown]
 # We break down the dataframe into a list of dataframes, where each entry
-# containa dataframe representing a play.
+# contains a dataframe representing a play. We then convert them to numpy
+# matrices, so that the first dimension is the play, second is the player, third
+# is the feature.
+#
+# We have to `expand_dims` for the rusher because numpy squeezes out the player
+# dimension and we want it to have the same dimensionality as the other arrays.
 
 # %%
 # Split data into play lists
 cols = ['X', 'Y', 'S_x', 'S_y']
 
-# Split offense and defense data
-off_data = data.loc[data.IsOffense, cols]
-def_data = data.loc[~data.IsOffense, cols]
+off_axis = 1 # the axis along which the offensive player changes
+def_axis = 2 # the axis along which the defensive player changes
 
-split_plays = lambda df: [df.loc[i] for i in tqdm(df.index.unique())]
+# Split offense and defense data
+off_data = data.loc[data.IsOffense & ~data.IsRusher, cols]
+def_data = data.loc[~data.IsOffense, cols]
+rus_data = data.loc[data.IsRusher, cols]
+
+split_plays = lambda df: [df.loc[i,:] for i in tqdm(df.index.unique())]
 
 #plays = split_plays(data)
 off_plays = split_plays(off_data)
 def_plays = split_plays(def_data)
+rus_plays = split_plays(rus_data)
 
 off_m = np.array([df.values for df in off_plays])
 def_m = np.array([df.values for df in def_plays])
+rus_m = np.array([df.values for df in rus_plays])
 
-off_m.shape
+# Expand and repeat arrays to match shapes
+off_m = np.expand_dims(off_m, axis=def_axis).repeat(11, def_axis)
+def_m = np.expand_dims(def_m, axis=off_axis).repeat(10, off_axis)
+
+rus_m = np.expand_dims(rus_m, off_axis).repeat(10, off_axis)
+rus_m = np.expand_dims(rus_m, def_axis).repeat(11, def_axis)
+
+print("Offense data shape", off_m.shape)
+print("Defense data shape", def_m.shape)
+print("Rusher data shape", rus_m.shape)
+
+# %% [markdown]
+# ## Feature Engineering
+#
+# Now we engineer specific features from the columns we collected. The shape of
+# our "image" is 10 offensive players x 11 defensive players. We will represent
+# scalar features, such as those for the rusher, as a constant values across the
+# matrix and 1-D features as repeating across the appropriate axis.
 
 # %% [markdown]
 # ### Defender Velocity
@@ -100,59 +128,66 @@ off_m.shape
 # - defender $S_x$
 # - defender $S_y$
 #
-# It does not include any information about the offense
+#
+# It does not include any information about the offense.
 
 # %%
 # Defender velocity feature
-def_vel = np.reshape(def_m[:,:,2:], (-1, 1, 11, 2)).repeat(11, axis=1)
+def_vel = def_m[:,:,:,2:]
+def_vel.shape
 
-# %%
-# ### Offense-Defense Distances layer
+# %% [markdown]
+# ### Offense-Defense layer
 #
 # These features compare the (x,y) positions of the offensive and defensive
-# players. This builds three features:
+# players. This builds five features:
 # 
 # - x distance
 # - y distance
+# - x relative speed
+# - y relative speed
 # - euclidean distance
+#
 #
 # This way the model is trained on both the absolute euclidean distance (so it
 # doesn'have to calculate that) as well as each of its components, which
 # preserve directionality as well.
 
 # %%
-# Euclidean distance feature
-off_pos = np.reshape(off_m[:,:,:2], (-1, 11, 1, 2)).repeat(11, axis=2)
-def_pos = np.reshape(def_m[:,:,:2], (-1, 1, 11, 2)).repeat(11, axis=1)
-
-# Manhattan distance features (both x and y)
-dist_xy = off_pos - def_pos
+# X and Y components of relative position and velocity
+off_def_rel_comp = off_m - def_m
 
 # Euclidean distance
-dist_e = np.sqrt(np.square(dist_xy).sum(axis=3))
+off_def_ed = np.sqrt(np.square(off_def_rel_comp[:,:,:,:2]).sum(axis=3))
+off_def_ed = np.expand_dims(off_def_ed, 3)
 
-dist = np.concatenate([dist_xy, np.expand_dims(dist_e,3)], axis=3)
-dist = dist.reshape(-1, 11, 11, 3)
+off_def = np.concatenate([off_def_rel_comp, off_def_ed], axis=3)
+off_def.shape
 
 # %% [markdown]
-# ### Relative velocities
+# ### Defender vs. Rusher
 #
-# These features compare the (x,y) velocity components of the offensive and
-# defensive players. This builds two features:
-# 
-# - relative x velocity
-# - relative y velocity
+# The distances from the defenders to the rusher. Five features:
 #
-# The model may be able to convolute this with position to understand how
-# players are moving in relation to each other.
+# - x distance
+# - y distance
+# - x relative speed
+# - y relative speed
+# - euclidean distance
+#
+#
+# The procedure is similar to the offensive vs. defensive positions
 
 # %%
-# Relative velocity feature
-off_vel = np.reshape(off_m[:,:,2:], (-1, 11, 1, 2)).repeat(11, axis=2)
-def_vel = np.reshape(def_m[:,:,2:], (-1, 1, 11, 2)).repeat(11, axis=1)
+# Components speed & velocity
+def_rus_rel_comp = def_m - rus_m
 
-d_vel = off_vel - def_vel
-d_vel = d_vel.reshape(-1, 11, 11, 2)
+# Euclidean distance
+def_rus_ed = np.sqrt(np.square(def_rus_rel_comp[:,:,:,:2]).sum(axis=3))
+def_rus_ed = np.expand_dims(def_rus_ed, 3)
+
+def_rus = np.concatenate([def_rus_rel_comp, def_rus_ed], axis=3)
+def_rus.shape
 
 # %%
 target = data.loc[data.IsRusher, "Yards"]
@@ -164,8 +199,8 @@ def pdf(n):
 
 features = [
     def_vel,
-    dist,
-    d_vel
+    off_def,
+    def_rus
 ]
 
 x = np.concatenate(features, axis=3)
