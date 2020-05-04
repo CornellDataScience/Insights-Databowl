@@ -223,7 +223,7 @@ features = [
 x = np.concatenate(features, axis=3)
 y = np.array(list(target.map(pdf)), dtype=np.float32)
 
-
+x_train, x_test, y_train, y_test = train_test_split(x,y)
 
 print("X shape:", x.shape)
 print("Y shape:", y.shape)
@@ -257,8 +257,8 @@ def compile_model():
     return model
 
 model = compile_model()
-history = model.fit(x,y, 
-    epochs=5,
+history = model.fit(x_train, y_train, 
+    epochs=10,
     validation_split=0.2,
     shuffle=False,
 )
@@ -291,4 +291,8 @@ axes[1].set_xticks(np.arange(start % hist.index.max(), hist.index.max(), 2))
 print(hist.tail(5))
 fig.show()
 
+# %% [markdown]
+# ## Model Scoring
+
 # %%
+model.evaluate(x_test, y_test)
