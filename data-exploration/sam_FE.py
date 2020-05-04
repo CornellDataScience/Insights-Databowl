@@ -59,6 +59,22 @@ plt.scatter(data.loc[data.IsRusher, "X_adj"], data.loc[data.IsRusher, "Y"], alph
 plt.show()
 
 # %% [markdown]
+# Both `S` and `Dis` seem to be representing the same thing--the speed of the
+# player. Let's see how they relate.
+
+# %%
+plt.scatter(plays.Dis, plays.S)
+plt.show()
+
+# %% [markdown]
+# There's some anomalies in the data here, but it looks like `S` is usually 10 *
+# `Dis`. Let's make that substitution and drop the extraneous column.
+
+# %%
+data.S = data.Dis * 10
+data.drop("Dis", axis=1, inplace=True)
+
+# %% [markdown]
 # We also have a lot of fields that we know are not going to be predictive.
 # Let's drop them to produce a clean dataframe.
 
@@ -119,3 +135,6 @@ clarity(play)
 # %%
 clean.to_csv("../data/fe_data.csv")
 plays.to_csv("../data/fe_plays_data.csv")
+
+
+# %%
