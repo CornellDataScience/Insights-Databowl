@@ -142,7 +142,7 @@ def compile_model():
     return model
 
 EPOCHS = 50
-stop = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=10)
+stop = tf.keras.callbacks.EarlyStopping(monitor='loss')
 model = compile_model()
 history = model.fit(x_train,y_train,
     validation_split=0.2,
@@ -224,6 +224,6 @@ plt.show()
 
 # %%
 score = model.evaluate(x_test, y_test)
-print(f"Test CRPS: {score:.4f}")
+print(f"Test CRPS: {score:.6f}")
 
 # %%
