@@ -5,18 +5,23 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import tensorflow as tf
 from tqdm import tqdm
+from sklearn.model_selection import train_test_split
 
 # %% [markdown]
 # # What's a Convolution?
 # 
 # Gonna make a convolutional neural net
 
-# %%
-raw_data = pd.read_csv("data/fe_data.csv", index_col=[1])
-raw_data.head(22)
+# %% [markdown]
+# ## Data Import
+# 
+# We've already done a lot of feature engineering in a different notebook, so
+# this will be brief. We're going to drop a lot of the columns as well, since we
+# only use player speeds and positions.
 
 # %%
-print('\n'.join(raw_data.columns))
+raw_data = pd.read_csv("data/fe_data.csv", index_col=[1])
+raw_data.head()
 
 # %%
 keep_columns = ["IsOffense","IsRusher","X","Y","S","A","Dir","Yards"]
@@ -24,7 +29,8 @@ data = raw_data[keep_columns]
 data.head()
 
 #%% [markdown]
-# Filter out incomplete plays which don't have data for all players.
+# Some of these plays don't have data on all 22 players. We filter these out.
+# Fortunately, we only lose about 24 plays.
 
 # %%
 indices = data.index.unique()
@@ -49,7 +55,7 @@ plt.show()
 
 # %% [markdown]
 # Because the offense is usually pushing toward positive X, we can understand
-# that $S_x = S \times sin(Dir)$
+# that $S_x = S \times sin(Dir)$ and $S_y = S \times -cos(Dir)$.
 
 # %%
 dir_rad = np.deg2rad(data.Dir)
@@ -63,6 +69,7 @@ data['S_y'] = S_y
 # We can verify that we're correctly assigning the x speed by comparing offense
 # and defense. Offense should generally have a positive x speed while defense
 # should have a negative one.
+
 # %%
 sns.kdeplot(S_x.loc[data.IsOffense], label='offense x')
 sns.kdeplot(S_x.loc[~data.IsOffense], label='defense x')
@@ -70,6 +77,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
+# ## Data Reformatting
 # We break down the dataframe into a list of dataframes, where each entry
 # contains a dataframe representing a play. We then convert them to numpy
 # matrices, so that the first dimension is the play, second is the player, third
@@ -85,10 +93,19 @@ cols = ['X', 'Y', 'S_x', 'S_y']
 off_axis = 1 # the axis along which the offensive player changes
 def_axis = 2 # the axis along which the defensive player changes
 
+# %% [markdown]
+# We normalize the columns as well.
+
+# %%
+df = data.loc[:,cols]
+norm_data = (df - df.mean()) / df.std()
+norm_data.head()
+
+# %%
 # Split offense and defense data
-off_data = data.loc[data.IsOffense & ~data.IsRusher, cols]
-def_data = data.loc[~data.IsOffense, cols]
-rus_data = data.loc[data.IsRusher, cols]
+off_data = norm_data.loc[data.IsOffense & ~data.IsRusher]
+def_data = norm_data.loc[~data.IsOffense]
+rus_data = norm_data.loc[data.IsRusher]
 
 split_plays = lambda df: [df.loc[i,:] for i in tqdm(df.index.unique())]
 
@@ -206,6 +223,8 @@ features = [
 x = np.concatenate(features, axis=3)
 y = np.array(list(target.map(pdf)), dtype=np.float32)
 
+
+
 print("X shape:", x.shape)
 print("Y shape:", y.shape)
 
@@ -238,7 +257,11 @@ def compile_model():
     return model
 
 model = compile_model()
-history = model.fit(x,y, epochs=5)
+history = model.fit(x,y, 
+    epochs=5,
+    validation_split=0.2,
+    shuffle=False,
+)
 
 # %% [markdown]
 # ## Training Report
@@ -252,7 +275,7 @@ best_mse = 0.011658
 
 for start,ax in zip([0,-10], axes):
     ax.plot(hist.loss[start:], label='loss')
-    #ax.plot(hist.val_loss[start:], label='val_loss')
+    ax.plot(hist.val_loss[start:], label='val_loss')
 
     ax.axhline(baseline_mse, label='baseline', c='red', ls='--')
     ax.axhline(goal_mse, label='goal', c='purple', ls='--')
