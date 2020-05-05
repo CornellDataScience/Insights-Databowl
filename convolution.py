@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
@@ -150,7 +151,7 @@ print("Rusher data shape", rus_m.shape)
 
 # %%
 # Defender velocity feature
-def_vel = def_m[:,:,:,2:]
+def_vel = def_m[:,:,:,:]
 def_vel.shape
 
 # %% [markdown]
@@ -215,7 +216,8 @@ def pdf(n):
     return arr
 
 features = [
-    def_vel,
+    off_m,
+    def_m,
     off_def,
     def_rus
 ]
@@ -236,12 +238,21 @@ print("Y shape:", y.shape)
 def compile_model():
     model = tf.keras.Sequential([
         tf.keras.layers.InputLayer(x.shape[1:], name='input'),
+        
         tf.keras.layers.Conv2D(64, kernel_size=(1,1), strides=(1,1), activation='relu'),
         tf.keras.layers.Conv2D(64, kernel_size=(1,1), strides=(1,1), activation='relu'),
         tf.keras.layers.Conv2D(64, kernel_size=(1,1), strides=(1,1), activation='relu'),
         tf.keras.layers.MaxPool2D(pool_size=(1,10)),
+        
+        tf.keras.layers.Lambda(lambda y: K.squeeze(y,2)),
+
+        tf.keras.layers.Conv1D(64, kernel_size=(1), strides=(1), activation='relu'),
+        tf.keras.layers.Conv1D(64, kernel_size=(1), strides=(1), activation='relu'),
+        tf.keras.layers.MaxPool1D(pool_size=(10)),
+
         tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Flatten(),
+        
         tf.keras.layers.Dense(128, activation='relu', name='d_relu'),
         tf.keras.layers.Dense(199, activation='softmax')
     ])
@@ -257,6 +268,7 @@ def compile_model():
     return model
 
 model = compile_model()
+# %%
 history = model.fit(x_train, y_train, 
     epochs=10,
     validation_split=0.2,
@@ -296,3 +308,5 @@ fig.show()
 
 # %%
 model.evaluate(x_test, y_test)
+
+# %%
