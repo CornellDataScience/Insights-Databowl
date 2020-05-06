@@ -47,6 +47,7 @@ plt.show()
 
 #%%
 def rotate_points(arr, deg):
+    """ Rotate an array of points around the origin """
     theta = np.deg2rad(-deg)
 
     R = np.array([[np.cos(theta), -np.sin(theta)],
@@ -61,8 +62,14 @@ def view_play(df):
     fig, ax = plt.subplots(figsize=(20,10))
     row = play.loc[play.IsRusher,:].iloc[0,:]
 
-    ax.axvline(x=row.YardLine+10, ls="--", c='k')
-    ax.axvline(x=row.YardLine+10+row.Distance, ls="--",c='y')
+    scrim_x = row.YardLine
+    if row.Field_eq_Possession:
+        scrim_x = row.YardLine + 10
+    else:
+        scrim_x = 100 - row.YardLine + 10
+
+    ax.axvline(x=scrim_x, ls="--", c='k')
+    ax.axvline(x=scrim_x+row.Distance, ls="--",c='y')
 
     ax.set_ylim((0,53.333))
     ax.set_aspect("equal")
