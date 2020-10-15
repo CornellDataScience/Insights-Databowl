@@ -16,4 +16,5 @@ python3 data-exploration/data-cleaning.py
 
 # generate vis play
 cp data/clean_data.csv data/test_data.csv
-python3 vis/generate-json.py
+cd vis
+python3 generate-json.py
