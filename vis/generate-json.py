@@ -8,7 +8,7 @@ import os
 data_path = os.path.join(os.path.split(os.getcwd())[0], 'data')
 
 # Load specific data
-drop_columns = ['DefendersInTheBox_vs_Distance','HomePossesion','Field_eq_Possession','HomeField','Formation_ACE','Formation_EMPTY','Formation_I_FORM','Formation_JUMBO','Formation_PISTOL','Formation_SHOTGUN','Formation_SINGLEBACK','Formation_WILDCAT','PlayerBMI','PlayerAge','YardsLeft']
+drop_columns = ['DefendersInTheBox_vs_Distance','Field_eq_Possession','HomeField','Formation_ACE','Formation_EMPTY','Formation_I_FORM','Formation_JUMBO','Formation_PISTOL','Formation_SHOTGUN','Formation_SINGLEBACK','Formation_WILDCAT','PlayerBMI','PlayerAge','YardsLeft']
 df = pd.read_csv(os.path.join(data_path, 'test_data.csv'), index_col=0).drop(columns=drop_columns)
 
 # Standardize coordinates
