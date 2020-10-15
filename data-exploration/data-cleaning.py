@@ -12,7 +12,7 @@ from string import punctuation
 from collections import Counter
 
 train = pd.read_csv('data/raw_data.csv', dtype={'WindSpeed': 'object'}) # import dataset
-train.head()
+print(train.head())
 
 #%%
 
@@ -48,11 +48,11 @@ def transform_StadiumType(txt):
         return 0
     return np.nan
 train['StadiumType'] = train['StadiumType'].apply(transform_StadiumType)
-Turf = {'Field Turf':'Artificial', 'A-Turf Titan':'Artificial', 'Grass':'Natural', 'UBU Sports Speed S5-M':'Artificial', 
-        'Artificial':'Artificial', 'DD GrassMaster':'Artificial', 'Natural Grass':'Natural', 
-        'UBU Speed Series-S5-M':'Artificial', 'FieldTurf':'Artificial', 'FieldTurf 360':'Artificial', 'Natural grass':'Natural', 'grass':'Natural', 
-        'Natural':'Natural', 'Artifical':'Artificial', 'FieldTurf360':'Artificial', 'Naturall Grass':'Natural', 'Field turf':'Artificial', 
-        'SISGrass':'Artificial', 'Twenty-Four/Seven Turf':'Artificial', 'natural grass':'Natural'} 
+Turf = {'Field Turf':'Artificial', 'A-Turf Titan':'Artificial', 'Grass':'Natural', 'UBU Sports Speed S5-M':'Artificial',
+        'Artificial':'Artificial', 'DD GrassMaster':'Artificial', 'Natural Grass':'Natural',
+        'UBU Speed Series-S5-M':'Artificial', 'FieldTurf':'Artificial', 'FieldTurf 360':'Artificial', 'Natural grass':'Natural', 'grass':'Natural',
+        'Natural':'Natural', 'Artifical':'Artificial', 'FieldTurf360':'Artificial', 'Naturall Grass':'Natural', 'Field turf':'Artificial',
+        'SISGrass':'Artificial', 'Twenty-Four/Seven Turf':'Artificial', 'natural grass':'Natural'}
 train['Turf'] = train['Turf'].map(Turf)
 train['Turf'] = train['Turf'] == 'Natural'
 train[(train['PossessionTeam']!=train['HomeTeamAbbr']) & (train['PossessionTeam']!=train['VisitorTeamAbbr'])][['PossessionTeam', 'HomeTeamAbbr', 'VisitorTeamAbbr']]
@@ -202,4 +202,5 @@ train['YardsLeft'] = train.apply(lambda row: row['YardsLeft'] if row['PlayDirect
 train.drop(train.index[(train['YardsLeft']<train['Yards']) | (train['YardsLeft']-100>train['Yards'])], inplace=True)
 #%%
 
-
+print(train.head())
+train.to_csv('data/clean_data.csv')
